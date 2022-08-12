@@ -1,0 +1,23 @@
+@font-face {
+font-family: "Computer Modern";
+src: url('cmunrm.ttf');
+}
+
+html {
+    margin: 0 auto;
+    max-width: 600px;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+body {
+font-family: "Computer Modern", serif;
+}
+
+.navbar {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
