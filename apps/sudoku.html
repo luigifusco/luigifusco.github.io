@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<body id="body">
+
+</body>
+
+<script>
+
+    function base_functor(i, j) {
+        return i * 3 + j;
+    }
+
+    function print_square(functor) {
+        str = "<table>";
+        for (let i = 0; i < 3; ++i) {
+            str += "<tr>";
+            for (let j = 0; j < 3; ++j) {
+                str += `<td>${functor(i, j)}</td>`;
+            }
+            str += "</tr>";    
+        }
+
+        str += "</table>";
+
+        return str;
+    }
+
+    function print_sudoku(data) {
+        return print_square((i, j) => print_square((ii, jj) => data[i*3*9 + j*3 + ii*9 + jj]));
+    }
+
+    function perform_checks(data, i, j) {
+        let seen = new Array(9).fill(false);
+        // check square
+        let ii = Math.floor(i / 3);
+        let jj = j % 3;
+        for (let i_iter = 0; i_iter < 3; i_iter++) {
+            for (let j_iter = 0; j_iter < 3; j_iter++) {
+                let val = data[ii*3*9 + jj*3 + i_iter*9 + j_iter];
+                if (val > 0 && seen[val]) {
+                    return false;
+                }
+                seen[val] = true;
+            }
+        }
+
+        // check row
+        seen.fill(false);
+        for (let j_iter = 0; j_iter < 9; ++j_iter) {
+            let val = data[i*9+j_iter];
+            if (val > 0 && seen[val]) {
+                return false;
+            }
+            seen[val] = true;
+        }
+
+        // check col
+        seen.fill(false);
+        for (let i_iter = 0; i_iter < 9; ++i_iter) {
+            let val = data[i_iter*9+j];
+            if (val > 0 && seen[val]) {
+                return false;
+            }
+            seen[val] = true;
+        }
+
+        return true;
+    }
+
+    function get_next(i, j) {
+        if (i == 8 && j == 8) return [true, 0, 0];
+        j++;
+        if (j > 8) {
+            j = 0;
+            i++;
+        }
+
+        return [false, i, j];
+    }
+
+    function solve_sudoku_recursive(data, ref, i, j) {
+        const [is_last, new_i, new_j] = get_next(i, j);
+        if (data[i*9+j] == 0) {
+            // if need to fill in: check every value
+            for (let val = 1; val <= 9; ++val) {
+                data[i*9+j] = val;
+                if (!perform_checks(data, i, j)) {
+                    continue;
+                }
+                if (is_last) return true;
+                if (solve_sudoku_recursive(data, ref, new_i, new_j)) {
+                    return true;
+                }
+            }
+        } else {
+            // simply go to next
+            if (is_last) return true;
+            if (solve_sudoku_recursive(data, ref, new_i, new_j)) {
+                return true;
+            }
+        }
+
+        // all failed
+        data[i*9+j] = ref[i*9+j];
+        return false;
+    }
+
+    function solve_sudoku(ref) {
+        data = Array.from(ref);
+
+        solve_sudoku_recursive(data, ref, 0, 0);
+
+        return data;
+    }
+
+    function button_solve_sudoku() {
+        let data = new Array(9*9).fill(0);
+
+        for (let i = 0; i < 9*9; ++i) {
+            let text = document.getElementById(i).value;
+            if (text) {
+                data[i] = parseInt(text);
+            }
+        }
+        
+        data = solve_sudoku(data);
+        
+        let body_string = "";
+        body_string += print_sudoku(data);
+        document.getElementById("body").innerHTML = body_string;
+    }
+    
+
+    let body_string = "";
+
+    body_string += print_square((i, j) => print_square((ii, jj) => `<input type="text", maxlength=1, size=1, id="${i*3*9 + j*3 + ii*9 + jj}">`));
+
+    body_string += '<input type="button" value="Solve" onclick="button_solve_sudoku()">'
+
+    document.getElementById("body").innerHTML = body_string;
+
+</script>
